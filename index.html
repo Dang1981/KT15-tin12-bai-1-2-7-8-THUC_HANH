@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Thi Thực Hành HTML 15 Phút - GV: Nguyễn Hoàng Hải Đăng</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS CDN xử lý đọc và xuất Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- QRCode.js CDN tạo mã QR phòng thi -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    body {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    textarea {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    .rec-indicator {
+      animation: pulse-red 1.2s infinite;
+    }
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.9); }
+    }
+    @media print {
+      body * { visibility: hidden; }
+      #printableCard, #printableCard * { visibility: visible; }
+      #printableCard {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none;
+        box-shadow: none;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 p-2 md:p-5 font-sans pb-32 md:pb-12">
+
+  <div class="max-w-5xl mx-auto space-y-4">
+
+    <header class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b pb-3">
+        <div>
+          <!-- Dòng trên cùng: Tên giáo viên -->
+          <div class="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-lg mb-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+            <span class="text-xs md:text-sm font-black text-indigo-900 tracking-wide uppercase">Giáo viên: Nguyễn Hoàng Hải Đăng</span>
+          </div>
+          <h1 class="text-base md:text-lg font-black text-slate-800 uppercase tracking-tight">HỆ THỐNG KIỂM TRA THỰC HÀNH HTML (15 PHÚT)</h1>
+          <p class="text-xs text-slate-500">Giám sát Camera • Chống chuyển tab/rời app • Tự nạp danh sách 12A3, 12A9, 12A14 • Xuất phiếu điểm</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Nút mở Mã QR -->
+          <button onclick="openQrModal()" class="bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+            <span>Mã QR Vào Thi</span>
+          </button>
+
+          <!-- Nút xuất Excel kết quả điểm -->
+          <button onclick="exportResultsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Xuất Bảng Điểm</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- THANH CHỌN THÔNG TIN LÀM BÀI -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 pt-1">
+        <!-- 1. CHỌN LỚP (Chỉ hiển thị tên lớp, không có chữ 'Lớp') -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">1. CHỌN LỚP:</label>
+          <select id="selectClass" onchange="onClassChange()" class="w-full text-xs bg-slate-50 border border-slate-300 font-bold rounded-xl px-3 py-2 text-indigo-700 focus:ring-2 focus:ring-indigo-500">
+            <option value="">-- Chọn --</option>
+            <option value="12A3">12A3</option>
+            <option value="12A9">12A9</option>
+            <option value="12A14">12A14</option>
+          </select>
+        </div>
+
+        <!-- 2. CHỌN TÊN HỌC SINH -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-[11px] font-bold text-slate-500 uppercase">2. TÊN HỌC SINH:</label>
+            <span id="studentCountBadge" class="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">0 HS</span>
+          </div>
+          <select id="selectStudent" onchange="onStudentChange()" class="w-full text-xs bg-slate-50 border border-slate-300 font-semibold rounded-xl px-3 py-2 text-slate-700 focus:ring-2 focus:ring-indigo-500">
+            <option value="">-- Chọn tên học sinh --</option>
+          </select>
+        </div>
+
+        <!-- 3. CHỌN BỘ ĐỀ THI -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">3. BỘ ĐỀ THI:</label>
+          <select id="selectTopic" onchange="switchTopic(this.value)" class="w-full text-xs bg-slate-50 border border-slate-300 font-semibold rounded-xl px-3 py-2 text-indigo-700 focus:ring-2 focus:ring-indigo-500">
+            <option value="0">Đề 1: Thời khóa biểu</option>
+            <option value="1">Đề 2: Menu Quán Kem</option>
+            <option value="2">Đề 3: Bảng Điểm CLB</option>
+          </select>
+        </div>
+
+        <!-- ĐỒNG HỒ & ĐẾM RỜI TAB -->
+        <div class="flex items-end justify-between gap-2">
+          <div class="bg-amber-50 border border-amber-300 px-2.5 py-1.5 rounded-xl text-center flex-1">
+            <span class="block text-[10px] font-bold text-amber-700 uppercase">RỜI APP/TAB</span>
+            <span id="violationCount" class="font-mono text-sm font-black text-rose-600">0/3</span>
+          </div>
+          <div class="bg-rose-50 border border-rose-300 px-3 py-1.5 rounded-xl text-center flex-1">
+            <span id="timerStatusLabel" class="block text-[10px] font-bold text-rose-600 uppercase">CHỜ BẬT CAM</span>
+            <span id="timerDisplay" class="font-mono text-base font-black text-rose-600">15:00</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div id="cameraAlertBar" class="bg-rose-50 border-2 border-rose-300 p-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+      <div class="flex items-center gap-2.5">
+        <span class="w-3.5 h-3.5 bg-rose-500 rounded-full rec-indicator"></span>
+        <div>
+          <p class="text-xs font-bold text-rose-800">Yêu cầu bắt buộc: Bật Camera để bắt đầu tính giờ làm bài (15 phút)</p>
+          <p class="text-[11px] text-rose-600">Thời gian 15:00, khung gõ code và hệ thống chống gian lận chỉ kích hoạt khi Camera đã mở.</p>
+        </div>
+      </div>
+      <button id="btnStartCamera" onclick="initCamera()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        Bật Camera Giám Sát & Bắt Đầu
+      </button>
+    </div>
+
+    <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+      <div class="flex justify-between items-center border-b pb-2">
+        <span class="text-xs font-bold bg-indigo-600 text-white px-2.5 py-1 rounded-md">ĐỀ BÀI TRỰC QUAN</span>
+        <span id="topicBadgeTitle" class="text-xs font-bold text-slate-600">Đề 1: Thời khóa biểu</span>
+      </div>
+      <div id="infographicBox" class="w-full overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-2"></div>
+    </section>
+
+    <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xs md:text-sm font-bold text-slate-700 uppercase flex items-center gap-2">
+          <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
+          Khu Vực Viết Mã Nguồn HTML
+        </h2>
+        <span class="text-[11px] text-rose-500 font-semibold">Khóa sao chép & dán</span>
+      </div>
+
+      <!-- Phím ký tự nhanh cho học sinh dùng điện thoại -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <span class="text-slate-400 font-medium whitespace-nowrap text-[11px]">Chèn nhanh:</span>
+        <button type="button" onclick="insertSymbol('<')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border rounded font-mono font-bold">&lt;</button>
+        <button type="button" onclick="insertSymbol('>')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border rounded font-mono font-bold">&gt;</button>
+        <button type="button" onclick="insertSymbol('/')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border rounded font-mono font-bold">/</button>
+        <button type="button" onclick="insertSymbol('=')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border rounded font-mono font-bold">=</button>
+        <button type="button" onclick="insertSymbol('&quot;')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border rounded font-mono font-bold">&quot;</button>
+        <button type="button" onclick="insertSymbol('style=&quot;&quot;')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 border rounded font-mono font-bold">style=""</button>
+        <button type="button" onclick="insertSymbol('<table></table>')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 border rounded font-mono font-bold">&lt;table&gt;</button>
+        <button type="button" onclick="insertSymbol('<tr><td></td></tr>')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 border rounded font-mono font-bold">&lt;tr&gt;&lt;td&gt;</button>
+      </div>
+
+      <!-- Ô textarea soạn thảo code (Khóa mặc định khi chưa bật Cam) -->
+      <textarea id="codeEditor" rows="9" disabled
+        placeholder="⚠️ VUI LÒNG CHỌN LỚP, CHỌN TÊN VÀ BẬT CAMERA Ở TRÊN ĐỂ BẮT ĐẦU TÍNH GIỜ VÀ LÀM BÀI..."
+        class="w-full p-3 font-mono text-xs md:text-sm bg-slate-900 text-emerald-400 rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed shadow-inner opacity-50 cursor-not-allowed"
+        spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+
+      <!-- Nút xem trước và nộp bài -->
+      <div class="grid grid-cols-2 gap-3 pt-1">
+        <button type="button" onclick="previewCode()" class="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-1.5 transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          Xem Trước Trang Web
+        </button>
+
+        <button type="button" id="btnSubmitCode" onclick="gradeCurrentCode()" disabled class="bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs md:text-sm opacity-50 cursor-not-allowed transition">
+          Nộp Bài & Chấm Điểm
+        </button>
+      </div>
+
+      <!-- Khung xem trước iframe -->
+      <div id="previewCard" class="hidden border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-2 mt-2">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-500 uppercase">Giao diện trang web xem trước:</span>
+          <button onclick="document.getElementById('previewCard').classList.add('hidden')" class="text-xs text-rose-500 font-bold cursor-pointer">Đóng</button>
+        </div>
+        <iframe id="previewFrame" class="w-full h-44 bg-white border border-slate-200 rounded-lg"></iframe>
+      </div>
+    </section>
+
+    <section id="resultCard" class="hidden bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+      <div id="printableCard" class="p-4 bg-white border border-slate-200 rounded-xl space-y-3">
+        <div class="flex justify-between items-start border-b pb-3">
+          <div>
+            <span class="text-[11px] font-bold text-indigo-600 block uppercase">Giáo viên: Nguyễn Hoàng Hải Đăng</span>
+            <h2 class="text-base font-black text-slate-900 uppercase">PHIẾU ĐIỂM THỰC HÀNH HTML (15 PHÚT)</h2>
+            <p class="text-xs text-slate-600 mt-1">Học sinh: <strong id="resStudentName" class="text-slate-800 text-sm">--</strong> | Lớp: <strong id="resClassName" class="text-slate-800">--</strong></p>
+            <p class="text-xs text-slate-500">Đề bài: <span id="resTopicTitle">--</span> | Thời gian nộp: <span id="resSubmitTime">--</span></p>
+          </div>
+          <div class="text-right">
+            <span class="text-[11px] font-bold text-slate-400 block uppercase">ĐIỂM TỔNG KẾT</span>
+            <span id="finalScore" class="text-3xl font-black text-indigo-600">0/10</span>
+          </div>
+        </div>
+
+        <div id="criteriaList" class="space-y-2 pt-1"></div>
+      </div>
+
+      <div class="no-print flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
+        <span class="text-xs text-slate-400">Kết quả đã tự động lưu vào danh sách tổng hợp.</span>
+        <button onclick="window.print()" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          In Phiếu Điểm / Lưu PDF
+        </button>
+      </div>
+    </section>
+
+  </div>
+
+  <div id="webcamFloatingBox" class="hidden fixed bottom-4 right-4 z-40 bg-slate-900/90 p-2 rounded-2xl shadow-2xl border-2 border-indigo-500 backdrop-blur-sm w-36 sm:w-44">
+    <div class="flex items-center justify-between pb-1.5 text-[10px] text-white font-bold px-1">
+      <span class="flex items-center gap-1">
+        <span class="w-2 h-2 rounded-full bg-red-500 rec-indicator"></span>
+        REC • LIVE
+      </span>
+      <span class="text-slate-400">CAM THI</span>
+    </div>
+    <video id="webcamFeed" autoplay playsinline muted class="w-full h-24 sm:h-28 object-cover rounded-xl bg-black border border-slate-700"></video>
+  </div>
+
+  <div id="qrModal" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border border-slate-200">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="text-base font-black text-indigo-700 uppercase">Quét Mã Vào Phòng Thi</h3>
+        <button onclick="closeQrModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer">✕</button>
+      </div>
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block shadow-inner">
+        <div id="qrcodeCanvas" class="flex justify-center"></div>
+      </div>
+      <div class="space-y-1">
+        <p class="text-xs font-bold text-slate-700">Mở Camera điện thoại hoặc Zalo để quét mã</p>
+        <p id="examUrlText" class="text-[11px] text-indigo-600 font-mono break-all"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="warningModal" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border-2 border-rose-500">
+      <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto text-xl font-black">!</div>
+      <h3 class="text-base font-black text-rose-600">CẢNH BÁO RỜI ỨNG DỤNG / RỜI PHÒNG THI!</h3>
+      <p id="modalNotice" class="text-xs text-slate-600 leading-relaxed font-medium">Hệ thống phát hiện em vừa chuyển trang hoặc rời khỏi giao diện thi. Hành vi này đã bị ghi lại!</p>
+      <button onclick="document.getElementById('warningModal').classList.add('hidden')" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">Quay Lại Làm Bài</button>
+    </div>
+  </div>
+
+  <script>
+    // DANH SÁCH MẶC ĐỊNH ĐẦY ĐỦ CHO TỪNG LỚP (ĐẢM BẢO KHÔNG BAO GIỜ BỊ 0 HS KHI MỞ FILE)
+    const DEFAULT_STUDENTS = {
+      "12A3": [
+        "01 - Nguyễn Gia Bảo", "02 - Trần Thị Mai Phương", "03 - Lê Minh Triết", "04 - Phạm Ngọc Ánh",
+        "05 - Võ Hoàng Nam", "06 - Bùi Diệu Linh", "07 - Đỗ Thành Đạt", "08 - Dương Thảo Vy",
+        "09 - Hà Quang Khải", "10 - Hồ Bảo Trâm", "11 - Huỳnh Quốc Anh", "12 - Lương Yến Nhi",
+        "13 - Mai Văn Phúc", "14 - Ngô Quỳnh Chi", "15 - Nguyễn Đức Huy", "16 - Nguyễn Hoàng Phúc",
+        "17 - Nguyễn Thảo Ngân", "18 - Phan Tấn Phát", "19 - Phùng Minh Quân", "20 - Tạ Minh Hoàng",
+        "21 - Thái Kim Oanh", "22 - Tô Hoài An", "23 - Trịnh Thùy Trang", "24 - Vũ Tuấn Kiệt",
+        "25 - Đoàn Đình Phong", "26 - Nguyễn Thị Hồng Hạnh", "27 - Trần Văn Thịnh", "28 - Hoàng Thu Hà",
+        "29 - Lâm Tuấn Tú", "30 - Nguyễn Mỹ Duyên", "31 - Phạm Đình Trọng", "32 - Trương Thị Diễm",
+        "33 - Lê Hoàng Yến", "34 - Vũ Khắc Tiệp", "35 - Đặng Thục Quyên", "36 - Nguyễn Nhật Nam"
+      ].map(str => {
+        const parts = str.split(" - ");
+        return { id: parts[0], name: parts[1] };
+      }),
+
+      "12A9": [
+        "01 - Đặng Tuấn Kiệt", "02 - Hoàng Thùy Linh", "03 - Bùi Đình Trọng", "04 - Nguyễn Khánh Vy",
+        "05 - Trương Quốc Huy", "06 - Cao Hải Đăng", "07 - Châu Mỹ Linh", "08 - Đào Trọng Tấn",
+        "09 - Đinh Ngọc Sơn", "10 - Giang Bảo Ngọc", "11 - Hứa Kim Tuyền", "12 - Khổng Minh Hiếu",
+        "13 - Lại Văn Sâm", "14 - Lâm Khánh Chi", "15 - Lê Hồng Đăng", "16 - Lưu Bích Hằng",
+        "17 - Mạc Văn Khoa", "18 - Nghiêm Anh Tuấn", "19 - Nguyễn Bích Ngọc", "20 - Nguyễn Cao Cường",
+        "21 - Nguyễn Duy Mạnh", "22 - Nguyễn Hải Yến", "23 - Nguyễn Tiến Linh", "24 - Nông Thúy Hằng",
+        "25 - Phạm Hương Giang", "26 - Phan Mạnh Quỳnh", "27 - Quách Tuấn Du", "28 - Tào Tuấn Dũng",
+        "29 - Thân Trọng Phúc", "30 - Tiêu Châu Như Quỳnh", "31 - Trần Đình Đồng", "32 - Triệu Việt Vương",
+        "33 - Uông Chu Lưu", "34 - Văn Mai Hương", "35 - Võ Trọng Phụng", "36 - Vũ Cát Tường",
+        "37 - Vương Tuấn Khải"
+      ].map(str => {
+        const parts = str.split(" - ");
+        return { id: parts[0], name: parts[1] };
+      }),
+
+      "12A14": [
+        "01 - Phan Văn Hậu", "02 - Lê Thị Thảo My", "03 - Nguyễn Thành Long", "04 - Đỗ Kim Ngân",
+        "05 - Huỳnh Minh Trí", "06 - An Quý Đôn", "07 - Bạch Thái Bưởi", "08 - Biện Thị Loan",
+        "09 - Cấn Đình Cường", "10 - Chu Văn An", "11 - Cung Kim Tuyến", "12 - Diệp Tuấn Vũ",
+        "13 - Đoàn Văn Hậu", "14 - Giáp Thị Mơ", "15 - Hầu A Lềnh", "16 - Kiều Minh Tuấn",
+        "17 - Lương Xuân Trường", "18 - Mạch Văn Kiếm", "19 - Ngụy Như Kon Tum", "20 - Nhâm Mạnh Dũng",
+        "21 - Ôn Như Hầu", "22 - Phí Ngọc Hưng", "23 - Quản Trọng Hùng", "24 - Quyền Linh",
+        "25 - Sầm Ngọc Đức", "26 - Thạch Kim Tuấn", "27 - Thiều Bảo Trâm", "28 - Thôi Văn Nam",
+        "29 - Trang Pháp", "30 - Trương Mỹ Lan", "31 - Từ Hải", "32 - Ung Văn Khiêm",
+        "33 - Vi Văn Mạn", "34 - Vưu Khải Bằng", "35 - Xa Thị Lan", "36 - Yên Thế Sơn"
+      ].map(str => {
+        const parts = str.split(" - ");
+        return { id: parts[0], name: parts[1] };
+      })
+    };
+
+    // Khởi tạo Database ban đầu bằng bản sao của danh sách mặc định
+    let database = JSON.parse(JSON.stringify(DEFAULT_STUDENTS));
+
+    let examResults = [];
+    let isCameraActive = false;
+    let cameraMediaStream = null;
+    let isTestStarted = false; // Chỉ bắt đầu giám sát chuyển tab khi camera đã mở
+
+    const TOPICS = [
+      {
+        id: 0,
+        name: "Đề 1: Thời khóa biểu lớp học",
+        rules: [
+          { desc: "Cấu trúc khung chuẩn (HTML, BODY)", regex: /<(html|body)[^>]*>/i, points: 2 },
+          { desc: "Tiêu đề h1/h2 đổi màu đỏ (color: red)", regex: /(color\s*:\s*(red|#f|#e)|color=["']red["'])/i, points: 2.5 },
+          { desc: "Danh sách có thứ tự (<ol>, <li>) 3 môn", regex: /<ol[^>]*>[\s\S]*<li[^>]*>[\s\S]*<li[^>]*>[\s\S]*<li[^>]*>/i, points: 2.5 },
+          { desc: "Bảng biểu có đường viền (table, border, th, td)", regex: /<table[^>]*>[\s\S]*<th[^>]*>[\s\S]*<td[^>]*>/i, points: 3.0 }
+        ],
+        svg: `<svg viewBox="0 0 880 390" width="100%" class="rounded-xl"><rect width="880" height="390" rx="10" fill="#ffffff"/><rect x="20" y="15" width="450" height="360" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/><rect x="20" y="15" width="450" height="28" fill="#f1f5f9" rx="8"/><circle cx="38" cy="29" r="4" fill="#ef4444"/><circle cx="50" cy="29" r="4" fill="#f59e0b"/><circle cx="62" cy="29" r="4" fill="#10b981"/><text x="245" y="70" text-anchor="middle" font-family="Arial" font-size="15" font-weight="bold" fill="#dc2626">THỜI KHÓA BIỂU CỦA EM</text><text x="40" y="105" font-family="Arial" font-size="12" font-weight="bold" fill="#2563eb">Môn học yêu thích:</text><text x="55" y="126" font-family="Arial" font-size="11" fill="#334155">1. Tin học lập trình</text><text x="55" y="145" font-family="Arial" font-size="11" fill="#334155">2. Toán học ứng dụng</text><text x="55" y="164" font-family="Arial" font-size="11" fill="#334155">3. Ngoại ngữ (Tiếng Anh)</text><text x="40" y="198" font-family="Arial" font-size="12" font-weight="bold" fill="#0f172a">Lịch học trong tuần:</text><rect x="40" y="210" width="410" height="26" fill="#e2e8f0" stroke="#64748b"/><line x1="140" y1="210" x2="140" y2="288" stroke="#64748b"/><text x="90" y="227" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0f172a">Thứ</text><text x="275" y="227" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0f172a">Môn học</text><rect x="40" y="236" width="410" height="26" fill="#ffffff" stroke="#64748b"/><text x="90" y="253" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">Thứ Hai</text><text x="275" y="253" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">Toán, Tin học</text><rect x="40" y="262" width="410" height="26" fill="#f8fafc" stroke="#64748b"/><text x="90" y="279" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">Thứ Tư</text><text x="275" y="279" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">Tiếng Anh, Ngữ văn</text><g transform="translate(495, 15)"><rect width="365" height="75" rx="8" fill="#fee2e2" stroke="#fca5a5"/><text x="14" y="24" font-family="Arial" font-size="12" font-weight="bold" fill="#991b1b">1. TIÊU ĐỀ (2.5đ)</text><text x="14" y="44" font-family="Arial" font-size="11" fill="#7f1d1d">• Thẻ &lt;h1&gt; hoặc &lt;h2&gt; màu đỏ</text><text x="14" y="60" font-family="Arial" font-size="11" fill="#7f1d1d">• Cú pháp: style="color: red;"</text><rect y="85" width="365" height="75" rx="8" fill="#dbeafe" stroke="#bfdbfe"/><text x="14" y="109" font-family="Arial" font-size="12" font-weight="bold" fill="#1e40af">2. DANH SÁCH (2.5đ)</text><text x="14" y="129" font-family="Arial" font-size="11" fill="#1e3a8a">• Dùng &lt;ol&gt; và 3 mục &lt;li&gt;</text><text x="14" y="145" font-family="Arial" font-size="11" fill="#1e3a8a">• Tiêu đề con đổi màu xanh (color: blue)</text><rect y="170" width="365" height="100" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/><text x="14" y="194" font-family="Arial" font-size="12" font-weight="bold" fill="#334155">3. BẢNG BIỂU (5.0đ)</text><text x="14" y="214" font-family="Arial" font-size="11" fill="#475569">• Dùng &lt;table border="1"&gt;, &lt;th&gt;, &lt;td&gt;</text><text x="14" y="232" font-family="Arial" font-size="11" fill="#475569">• Cấu trúc chuẩn &lt;html&gt;, &lt;body&gt;</text><rect y="280" width="365" height="40" rx="8" fill="#ecfdf5" stroke="#a7f3d0"/><text x="14" y="305" font-family="Arial" font-size="11" font-weight="bold" fill="#065f46">⏱️ 15 Phút | Bật Camera để bắt đầu tính giờ</text></g></svg>`
+      },
+      {
+        id: 1,
+        name: "Đề 2: Menu Quán Kem & Tráng Miệng",
+        rules: [
+          { desc: "Cấu trúc khung chuẩn (HTML, BODY)", regex: /<(html|body)[^>]*>/i, points: 2 },
+          { desc: "Tiêu đề đổi màu xanh lá (color: green)", regex: /(color\s*:\s*(green|#)|style=["'][^"']*color)/i, points: 2.5 },
+          { desc: "Danh sách không thứ tự (<ul>, <li>) 3 món", regex: /<ul[^>]*>[\s\S]*<li[^>]*>[\s\S]*<li[^>]*>[\s\S]*<li[^>]*>/i, points: 2.5 },
+          { desc: "Bảng thực đơn 2 cột có viền (table, border, th, td)", regex: /<table[^>]*>[\s\S]*<(th|td)[^>]*>[\s\S]*<(th|td)[^>]*>/i, points: 3.0 }
+        ],
+        svg: `<svg viewBox="0 0 880 390" width="100%" class="rounded-xl"><rect width="880" height="390" rx="10" fill="#ffffff"/><rect x="20" y="15" width="450" height="360" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/><rect x="20" y="15" width="450" height="28" fill="#f1f5f9" rx="8"/><circle cx="38" cy="29" r="4" fill="#ef4444"/><circle cx="50" cy="29" r="4" fill="#f59e0b"/><circle cx="62" cy="29" r="4" fill="#10b981"/><text x="245" y="70" text-anchor="middle" font-family="Arial" font-size="15" font-weight="bold" fill="#059669">TIỆM KEM NGỌT NGÀO</text><text x="40" y="105" font-family="Arial" font-size="12" font-weight="bold" fill="#9333ea">Topping gọi thêm:</text><text x="55" y="126" font-family="Arial" font-size="11" fill="#334155">• Trân châu đen</text><text x="55" y="145" font-family="Arial" font-size="11" fill="#334155">• Thạch trái cây</text><text x="55" y="164" font-family="Arial" font-size="11" fill="#334155">• Hạnh nhân rang</text><text x="40" y="198" font-family="Arial" font-size="12" font-weight="bold" fill="#0f172a">Bảng giá kem tươi:</text><rect x="40" y="210" width="410" height="26" fill="#fef3c7" stroke="#d97706"/><line x1="260" y1="210" x2="260" y2="288" stroke="#d97706"/><text x="150" y="227" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#78350f">Tên món</text><text x="335" y="227" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#78350f">Đơn giá</text><rect x="40" y="236" width="410" height="26" fill="#ffffff" stroke="#d97706"/><text x="150" y="253" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">Kem ốc quế dâu</text><text x="335" y="253" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">15.000 VNĐ</text><rect x="40" y="262" width="410" height="26" fill="#fffbeb" stroke="#d97706"/><text x="150" y="279" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">Kem bơ sầu riêng</text><text x="335" y="279" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">25.000 VNĐ</text><g transform="translate(495, 15)"><rect width="365" height="75" rx="8" fill="#d1fae5" stroke="#6ee7b7"/><text x="14" y="24" font-family="Arial" font-size="12" font-weight="bold" fill="#065f46">1. TIÊU ĐỀ XANH (2.5đ)</text><text x="14" y="44" font-family="Arial" font-size="11" fill="#064e3b">• Thẻ &lt;h1&gt; hoặc &lt;h2&gt;</text><text x="14" y="60" font-family="Arial" font-size="11" fill="#064e3b">• Đổi màu: style="color: green;"</text><rect y="85" width="365" height="75" rx="8" fill="#f3e8ff" stroke="#d8b4fe"/><text x="14" y="109" font-family="Arial" font-size="12" font-weight="bold" fill="#6b21a8">2. DANH SÁCH DẤU CHẤM (2.5đ)</text><text x="14" y="129" font-family="Arial" font-size="11" fill="#581c87">• Dùng thẻ &lt;ul&gt;, &lt;li&gt;</text><rect y="170" width="365" height="100" rx="8" fill="#fef3c7" stroke="#fcd34d"/><text x="14" y="194" font-family="Arial" font-size="12" font-weight="bold" fill="#92400e">3. BẢNG GIÁ (5.0đ)</text><text x="14" y="214" font-family="Arial" font-size="11" fill="#78350f">• Thẻ: &lt;table border="1"&gt;, &lt;th&gt;, &lt;td&gt;</text><rect y="280" width="365" height="40" rx="8" fill="#ecfdf5" stroke="#a7f3d0"/><text x="14" y="305" font-family="Arial" font-size="11" font-weight="bold" fill="#065f46">⏱️ 15 Phút | Bật Camera để bắt đầu tính giờ</text></g></svg>`
+      },
+      {
+        id: 2,
+        name: "Đề 3: Bảng Điểm CLB Tin Học",
+        rules: [
+          { desc: "Cấu trúc khung chuẩn (HTML, BODY)", regex: /<(html|body)[^>]*>/i, points: 2 },
+          { desc: "Tiêu đề đổi màu xanh dương (color: blue)", regex: /(color\s*:\s*(blue|navy|#0|#1)|color=["']blue["'])/i, points: 2.5 },
+          { desc: "Danh sách nội quy (<ol>, <li>) 3 điều", regex: /<ol[^>]*>[\s\S]*<li[^>]*>[\s\S]*<li[^>]*>[\s\S]*<li[^>]*>/i, points: 2.5 },
+          { desc: "Bảng 3 cột STT, Tên, Điểm (table, border, th, td)", regex: /<table[^>]*>[\s\S]*<(th|td)[^>]*>[\s\S]*<(th|td)[^>]*>[\s\S]*<(th|td)[^>]*>/i, points: 3.0 }
+        ],
+        svg: `<svg viewBox="0 0 880 390" width="100%" class="rounded-xl"><rect width="880" height="390" rx="10" fill="#ffffff"/><rect x="20" y="15" width="450" height="360" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/><rect x="20" y="15" width="450" height="28" fill="#f1f5f9" rx="8"/><circle cx="38" cy="29" r="4" fill="#ef4444"/><circle cx="50" cy="29" r="4" fill="#f59e0b"/><circle cx="62" cy="29" r="4" fill="#10b981"/><text x="245" y="70" text-anchor="middle" font-family="Arial" font-size="15" font-weight="bold" fill="#1d4ed8">CÂU LẠC BỘ TIN HỌC TRẺ</text><text x="40" y="105" font-family="Arial" font-size="12" font-weight="bold" fill="#b91c1c">Nội quy phòng máy:</text><text x="55" y="126" font-family="Arial" font-size="11" fill="#334155">1. Đi học đúng giờ</text><text x="55" y="145" font-family="Arial" font-size="11" fill="#334155">2. Không mang đồ ăn vào phòng</text><text x="55" y="164" font-family="Arial" font-size="11" fill="#334155">3. Tắt máy sau khi kết thúc buổi</text><text x="40" y="198" font-family="Arial" font-size="12" font-weight="bold" fill="#0f172a">Bảng xếp hạng tuần:</text><rect x="40" y="210" width="410" height="26" fill="#e0e7ff" stroke="#6366f1"/><line x1="100" y1="210" x2="100" y2="288" stroke="#6366f1"/><line x1="310" y1="210" x2="310" y2="288" stroke="#6366f1"/><text x="70" y="227" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#3730a3">STT</text><text x="205" y="227" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#3730a3">Họ và tên</text><text x="360" y="227" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#3730a3">Điểm</text><rect x="40" y="236" width="410" height="26" fill="#ffffff" stroke="#6366f1"/><text x="70" y="253" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">1</text><text x="205" y="253" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">Nguyễn Văn An</text><text x="360" y="253" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">10</text><rect x="40" y="262" width="410" height="26" fill="#eef2ff" stroke="#6366f1"/><text x="70" y="279" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">2</text><text x="205" y="279" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">Trần Thị Bình</text><text x="360" y="279" text-anchor="middle" font-family="Arial" font-size="11" fill="#334155">9.5</text><g transform="translate(495, 15)"><rect width="365" height="75" rx="8" fill="#dbeafe" stroke="#93c5fd"/><text x="14" y="24" font-family="Arial" font-size="12" font-weight="bold" fill="#1e40af">1. TIÊU ĐỀ (2.5đ)</text><text x="14" y="44" font-family="Arial" font-size="11" fill="#1e3a8a">• Thẻ &lt;h1&gt; hoặc &lt;h2&gt;</text><rect y="85" width="365" height="75" rx="8" fill="#fee2e2" stroke="#fca5a5"/><text x="14" y="109" font-family="Arial" font-size="12" font-weight="bold" fill="#991b1b">2. NỘI QUY CÓ THỨ TỰ (2.5đ)</text><text x="14" y="129" font-family="Arial" font-size="11" fill="#7f1d1d">• Dùng &lt;ol&gt;, &lt;li&gt;</text><rect y="170" width="365" height="100" rx="8" fill="#e0e7ff" stroke="#a5b4fc"/><text x="14" y="194" font-family="Arial" font-size="12" font-weight="bold" fill="#3730a3">3. BẢNG XẾP HẠNG (5.0đ)</text><text x="14" y="214" font-family="Arial" font-size="11" fill="#312e81">• Bảng có 3 cột: STT, Tên, Điểm</text><rect y="280" width="365" height="40" rx="8" fill="#ecfdf5" stroke="#a7f3d0"/><text x="14" y="305" font-family="Arial" font-size="11" font-weight="bold" fill="#065f46">⏱️ 15 Phút | Bật Camera để bắt đầu tính giờ</text></g></svg>`
+      }
+    ];
+
+    let currentTopicIndex = 0;
+    let timerSeconds = 15 * 60;
+    let timerInterval = null;
+    let tabSwitchViolations = 0;
+    const MAX_VIOLATIONS = 3;
+    let isTestFinished = false;
+
+    function renderStudentCombobox(className) {
+      const selectStudent = document.getElementById('selectStudent');
+      const badge = document.getElementById('studentCountBadge');
+      selectStudent.innerHTML = '<option value="">-- Chọn tên học sinh --</option>';
+
+      const students = database[className] || [];
+      if (students.length > 0) {
+        students.forEach(st => {
+          const opt = document.createElement('option');
+          opt.value = st.name;
+          opt.innerText = `${st.id} - ${st.name}`;
+          selectStudent.appendChild(opt);
+        });
+        badge.innerText = `${students.length} HS`;
+        badge.className = "text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-300";
+      } else {
+        badge.innerText = `0 HS`;
+        badge.className = "text-[10px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded border border-rose-300";
+      }
+    }
+
+    // Khi chọn lớp -> Nạp ngay lập tức danh sách học sinh (không bao giờ bị trống)
+    function onClassChange() {
+      const currentClass = document.getElementById('selectClass').value;
+      if (!currentClass) {
+        document.getElementById('selectStudent').innerHTML = '<option value="">-- Chọn tên học sinh --</option>';
+        document.getElementById('studentCountBadge').innerText = "0 HS";
+        document.getElementById('studentCountBadge').className = "text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200";
+        return;
+      }
+
+      // 1. HIỂN THỊ DANH SÁCH NGAY LẬP TỨC TỪ BỘ NHỚ
+      renderStudentCombobox(currentClass);
+
+      // 2. TỰ ĐỘNG THỬ ĐỌC NGẦM FILE EXCEL CÙNG CẤP (NẾU CHẠY TRÊN WEB SERVER / GITHUB PAGES)
+      fetchExcelSilently(currentClass);
+    }
+
+    // Đọc ngầm file Excel nếu tồn tại, cập nhật đè nếu thành công
+    async function fetchExcelSilently(className) {
+      const candidateFiles = [
+        `${className}.xlsx`,
+        `${className}.xls`,
+        `${className.toLowerCase()}.xlsx`
+      ];
+
+      for (let fileName of candidateFiles) {
+        try {
+          const response = await fetch(fileName, { cache: "no-store" });
+          if (response.ok) {
+            const arrayBuffer = await response.arrayBuffer();
+            const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+            
+            // Ưu tiên sheet có tên lớp hoặc sheet đầu tiên
+            const sheetName = workbook.SheetNames.find(s => s.trim().toUpperCase() === className.toUpperCase()) || workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            if (!worksheet) continue;
+
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+            if (!rows || rows.length <= 1) continue;
+
+            const newStudents = [];
+            // Bỏ qua dòng 1 tiêu đề (index 0), duyệt từ dòng 2 (index 1)
+            for (let i = 1; i < rows.length; i++) {
+              const row = rows[i];
+              if (!row || row.length === 0) continue;
+
+              let stt = String(row[0] !== undefined && row[0] !== null ? row[0] : "").trim();
+              let name = String(row[1] !== undefined && row[1] !== null ? row[1] : "").trim();
+
+              if (!name && stt && isNaN(stt)) {
+                name = stt;
+                stt = String(newStudents.length + 1);
+              }
+
+              const lower = name.toLowerCase();
+              if (name && !lower.includes("họ và tên") && !lower.includes("tên học sinh") && !lower.includes("họ tên")) {
+                newStudents.push({
+                  id: stt ? stt.padStart(2, '0') : String(newStudents.length + 1).padStart(2, '0'),
+                  name: name
+                });
+              }
+            }
+
+            if (newStudents.length > 0) {
+              database[className] = newStudents;
+              renderStudentCombobox(className);
+              console.log(`Đã cập nhật ngầm danh sách từ file ${fileName}`);
+              break;
+            }
+          }
+        } catch (e) {
+          // Bỏ qua lỗi ngầm khi chạy offline file:///
+        }
+      }
+    }
+
+    function onStudentChange() {
+      const student = document.getElementById('selectStudent').value;
+      if (student && !isTestStarted) {
+        document.getElementById('codeEditor').placeholder = `Học sinh: ${student} - Vui lòng bấm 'Bật Camera Giám Sát & Bắt Đầu' ở trên để tính giờ 15 phút và gõ code...`;
+      }
+    }
+
+    async function initCamera() {
+      const studentClass = document.getElementById('selectClass').value;
+      const studentName = document.getElementById('selectStudent').value;
+
+      if (!studentClass) {
+        alert("Vui lòng chọn Lớp trước!");
+        return;
+      }
+      if (!studentName) {
+        alert("Vui lòng chọn Họ và tên học sinh trước khi bắt đầu!");
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: false
+        });
+
+        cameraMediaStream = stream;
+        document.getElementById('webcamFeed').srcObject = stream;
+        isCameraActive = true;
+        isTestStarted = true; // Kích hoạt cờ làm bài: từ thời điểm này mới giám sát rời tab
+
+        // Cập nhật giao diện thanh trạng thái
+        document.getElementById('webcamFloatingBox').classList.remove('hidden');
+        const alertBar = document.getElementById('cameraAlertBar');
+        alertBar.className = "bg-emerald-50 border border-emerald-300 p-3.5 rounded-2xl flex items-center justify-between shadow-sm";
+        alertBar.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span class="text-xs font-bold text-emerald-800">Camera đang hoạt động • Thời gian 15 phút đang đếm ngược!</span>
+          </div>
+          <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-lg">Đang thi</span>
+        `;
+
+        document.getElementById('timerStatusLabel').innerText = "CÒN LẠI";
+        startTimer();
+
+        // Mở khóa khung soạn thảo textarea
+        const editor = document.getElementById('codeEditor');
+        editor.disabled = false;
+        editor.classList.remove('opacity-50', 'cursor-not-allowed');
+        editor.placeholder = `Học sinh: ${studentName} (${studentClass}) - Bắt đầu gõ mã HTML tại đây...`;
+
+        const btnSubmit = document.getElementById('btnSubmitCode');
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        btnSubmit.classList.add('hover:bg-indigo-700', 'cursor-pointer');
+
+        // Khóa các trường chọn khi đang thi
+        document.getElementById('selectClass').disabled = true;
+        document.getElementById('selectStudent').disabled = true;
+        document.getElementById('selectTopic').disabled = true;
+
+        stream.getVideoTracks()[0].onended = function() {
+          isCameraActive = false;
+          alert("CẢNH BÁO: Luồng Camera giám sát bị gián đoạn!");
+          triggerViolation("Tắt camera giám sát");
+        };
+
+      } catch (err) {
+        alert("Không thể mở Camera! Em hãy cấp quyền truy cập Camera cho trình duyệt để bắt đầu làm bài.");
+        console.error("Camera Error:", err);
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerSeconds = 15 * 60;
+      timerInterval = setInterval(() => {
+        if (timerSeconds <= 0) {
+          clearInterval(timerInterval);
+          document.getElementById('timerDisplay').innerText = "HẾT GIỜ";
+          alert("Đã hết 15 phút làm bài! Hệ thống tự động thu bài và chấm điểm.");
+          gradeCurrentCode();
+          return;
+        }
+        timerSeconds--;
+        const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const s = String(timerSeconds % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function displayTopic(index) {
+      currentTopicIndex = index;
+      const topic = TOPICS[index];
+      document.getElementById('infographicBox').innerHTML = topic.svg;
+      document.getElementById('topicBadgeTitle').innerText = topic.name;
+      document.getElementById('resultCard').classList.add('hidden');
+    }
+
+    function switchTopic(val) {
+      displayTopic(parseInt(val));
+    }
+
+    function insertSymbol(symbol) {
+      if (!isCameraActive || !isTestStarted) {
+        alert("Em cần bật Camera để bắt đầu làm bài!");
+        return;
+      }
+      const editor = document.getElementById('codeEditor');
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const text = editor.value;
+      editor.value = text.substring(0, start) + symbol + text.substring(end);
+      editor.focus();
+      editor.selectionStart = editor.selectionEnd = start + symbol.length;
+    }
+
+    function previewCode() {
+      const code = document.getElementById('codeEditor').value;
+      document.getElementById('previewCard').classList.remove('hidden');
+      const iframe = document.getElementById('previewFrame');
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+      iframeDoc.open();
+      iframeDoc.write(code);
+      iframeDoc.close();
+    }
+
+    function triggerViolation(reason = "Rời ứng dụng hoặc chuyển trang khác") {
+      if (!isTestStarted || isTestFinished) return;
+
+      tabSwitchViolations++;
+      document.getElementById('violationCount').innerText = `${tabSwitchViolations}/${MAX_VIOLATIONS}`;
+
+      const modal = document.getElementById('warningModal');
+      const modalNotice = document.getElementById('modalNotice');
+
+      if (tabSwitchViolations >= MAX_VIOLATIONS) {
+        modalNotice.innerText = `Em đã rời app/chuyển tab quá ${MAX_VIOLATIONS} lần! Bài thi bị tự động thu và nộp ngay lập tức.`;
+        modal.classList.remove('hidden');
+        gradeCurrentCode();
+      } else {
+        modalNotice.innerText = `Cảnh báo lần ${tabSwitchViolations}: Phát hiện hành vi [${reason}]! Tái phạm ${MAX_VIOLATIONS - tabSwitchViolations} lần nữa bài sẽ bị thu và trừ điểm.`;
+        modal.classList.remove('hidden');
+      }
+    }
+
+    // Bắt sự kiện chuyển tab hoặc ẩn ứng dụng điện thoại vào nền
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && isTestStarted && !isTestFinished) {
+        triggerViolation("Chuyển tab hoặc ẩn ứng dụng vào nền");
+      }
+    });
+
+    window.addEventListener("pagehide", () => {
+      if (isTestStarted && !isTestFinished) {
+        triggerViolation("Rời trang kiểm tra");
+      }
+    });
+
+    // Chặn sao chép, cắt, dán và menu chuột phải trên khung gõ code
+    const codeEditor = document.getElementById('codeEditor');
+    codeEditor.addEventListener('paste', (e) => {
+      e.preventDefault();
+      alert("Quy chế thi: KHÔNG ĐƯỢC PHÉP DÁN (PASTE) MÃ NGUỒN VÀO BÀI THI!");
+    });
+    codeEditor.addEventListener('copy', (e) => e.preventDefault());
+    codeEditor.addEventListener('cut', (e) => e.preventDefault());
+    codeEditor.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    function gradeCurrentCode() {
+      const studentClass = document.getElementById('selectClass').value;
+      const studentName = document.getElementById('selectStudent').value;
+
+      if (!studentClass || !studentName) {
+        alert("Vui lòng chọn Lớp và Họ tên học sinh!");
+        return;
+      }
+
+      isTestFinished = true;
+      isTestStarted = false;
+      clearInterval(timerInterval);
+
+      // Tắt Camera sau khi nộp bài
+      if (cameraMediaStream) {
+        cameraMediaStream.getTracks().forEach(track => track.stop());
+        document.getElementById('webcamFloatingBox').classList.add('hidden');
+      }
+
+      const code = document.getElementById('codeEditor').value;
+      const topic = TOPICS[currentTopicIndex];
+      let total = 0;
+      const container = document.getElementById('criteriaList');
+      container.innerHTML = '';
+
+      topic.rules.forEach(rule => {
+        const passed = rule.regex.test(code);
+        const score = passed ? rule.points : 0;
+        total += score;
+
+        const row = document.createElement('div');
+        row.className = `flex justify-between items-center p-2.5 rounded-xl border text-xs md:text-sm ${
+          passed ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+        }`;
+        row.innerHTML = `
+          <div class="flex items-center gap-2 font-medium">
+            <span class="font-bold">${passed ? '✓' : '✗'}</span>
+            <span>${rule.desc}</span>
+          </div>
+          <span class="font-bold">${score}/${rule.points} đ</span>
+        `;
+        container.appendChild(row);
+      });
+
+      // Trừ điểm nếu có vi phạm rời tab
+      if (tabSwitchViolations > 0) {
+        const penalty = Math.min(total, tabSwitchViolations * 1.0);
+        total = Math.max(0, total - penalty);
+        const penaltyRow = document.createElement('div');
+        penaltyRow.className = "flex justify-between items-center p-2.5 rounded-xl border bg-amber-50 border-amber-300 text-amber-900 text-xs";
+        penaltyRow.innerHTML = `
+          <span>Trừ điểm vi phạm rời ứng dụng/chuyển tab (${tabSwitchViolations} lần)</span>
+          <span class="font-bold">-${penalty.toFixed(1)} đ</span>
+        `;
+        container.appendChild(penaltyRow);
+      }
+
+      const finalScoreFormatted = total.toFixed(1);
+      document.getElementById('finalScore').innerText = `${finalScoreFormatted}/10`;
+      document.getElementById('resStudentName').innerText = studentName;
+      document.getElementById('resClassName').innerText = studentClass;
+      document.getElementById('resTopicTitle').innerText = topic.name;
+      document.getElementById('resSubmitTime').innerText = new Date().toLocaleTimeString('vi-VN');
+
+      examResults.push({
+        "Lớp": studentClass,
+        "Họ và Tên": studentName,
+        "Đề Thi": topic.name,
+        "Điểm Số": finalScoreFormatted,
+        "Số Lần Rời App/Tab": tabSwitchViolations,
+        "Thời Gian Nộp": new Date().toLocaleString('vi-VN')
+      });
+
+      const resultCard = document.getElementById('resultCard');
+      resultCard.classList.remove('hidden');
+      resultCard.scrollIntoView({ behavior: 'smooth' });
+
+      document.getElementById('codeEditor').disabled = true;
+      document.getElementById('btnSubmitCode').disabled = true;
+      document.getElementById('btnSubmitCode').classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    function exportResultsToExcel() {
+      if (examResults.length === 0) {
+        alert("Chưa có kết quả bài nộp để xuất bảng điểm!");
+        return;
+      }
+      const ws = XLSX.utils.json_to_sheet(examResults);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "BangDiem");
+      XLSX.writeFile(wb, `Bang_Diem_Thuc_Hanh_HTML_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    function openQrModal() {
+      const currentUrl = window.location.href.startsWith("http") ? window.location.href : "https://ten-nguoidung.github.io/html-exam/";
+      const container = document.getElementById('qrcodeCanvas');
+      container.innerHTML = "";
+      new QRCode(container, {
+        text: currentUrl,
+        width: 210,
+        height: 210,
+        colorDark: "#1e1b4b",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      document.getElementById('examUrlText').innerText = currentUrl;
+      document.getElementById('qrModal').classList.remove('hidden');
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
+
+    // Khởi tạo ban đầu khi mở trang
+    window.onload = () => {
+      displayTopic(0);
+      document.getElementById('timerDisplay').innerText = "15:00";
+      document.getElementById('timerStatusLabel').innerText = "CHỜ BẬT CAM";
+    };
+  </script>
+</body>
+</html>
